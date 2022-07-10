@@ -22,8 +22,6 @@ type User struct {
 	Role     int    `json:"id_role"`
 }
 
-var db = config.Db
-
 type Users struct {
 	Users []User `json:"data"`
 }
@@ -34,6 +32,7 @@ func HashPassword(password string) (string, error) {
 }
 
 func Getdatauser(c *fiber.Ctx) error {
+	var db = config.Db
 	now := time.Now().Unix()
 
 	claims, err := utils.ExtractTokenMetadata(c)
@@ -72,6 +71,7 @@ func Getdatauser(c *fiber.Ctx) error {
 }
 
 func Savedatauser(c *fiber.Ctx) error {
+	var db = config.Db
 	u := new(User)
 	validate := utils.NewValidator()
 
@@ -90,7 +90,7 @@ func Savedatauser(c *fiber.Ctx) error {
 
 	resp, _ := db.Query("SELECT  a.id, a.username, a.name, a.email, a.status, a.phone, a.id_role FROM users as a WHERE username=$1 or email=$2", u.Username, u.Email)
 
-	if resp != nil {
+	if resp == nil {
 		err := db.QueryRow("INSERT INTO users (username, name, email,status,phone, password, id_role)VALUES ($1, $2, $3, $4, $5, $6, $7) returning id", u.Username, u.Name, u.Email, u.Status, u.Phone, bycrypt, u.Role).Scan(&u.ID)
 
 		if err != nil {
@@ -108,6 +108,7 @@ func Savedatauser(c *fiber.Ctx) error {
 }
 
 func Detailuser(c *fiber.Ctx) error {
+	var db = config.Db
 	var id = c.Params("id")
 	user := User{}
 	err := db.QueryRow("SELECT  a.id, a.username, a.name, a.email, a.status, a.phone, a.id_role FROM users as a WHERE id=$1", id).Scan(&user.ID, &user.Username, &user.Name, &user.Email, &user.Status, &user.Phone, &user.Role)
@@ -119,6 +120,7 @@ func Detailuser(c *fiber.Ctx) error {
 }
 
 func Updateuser(c *fiber.Ctx) error {
+	var db = config.Db
 	u := new(User)
 
 	if err := c.BodyParser(u); err != nil {
@@ -138,6 +140,7 @@ func Updateuser(c *fiber.Ctx) error {
 }
 
 func Deleteuser(c *fiber.Ctx) error {
+	var db = config.Db
 	var id = c.Params("id")
 	_, err := db.Query("DELETE FROM users WHERE id = $1", id)
 	if err != nil {
